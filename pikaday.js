@@ -305,8 +305,8 @@
             arr.push('is-selected');
             ariaSelected = 'true';
         }
-        if (opts.hasEvent) {
-            arr.push('has-event');
+        if (opts.eventClass) {
+            arr.push(opts.eventClass);
         }
         if (opts.isInRange) {
             arr.push('is-inrange');
@@ -1084,7 +1084,8 @@
                 var day = new Date(year, month, 1 + (i - before)),
                     isSelected = isDate(this._d) ? compareDates(day, this._d) : false,
                     isToday = compareDates(day, now),
-                    hasEvent = opts.events.indexOf(day.toDateString()) !== -1 ? true : false,
+                    dayStr = day.toDateString(),
+                    eventClass = undefined,
                     isEmpty = i < before || i >= (days + before),
                     dayNumber = 1 + (i - before),
                     monthNumber = month,
@@ -1097,6 +1098,25 @@
                                  (opts.disableWeekends && isWeekend(day)) ||
                                  (opts.disableDayFn && opts.disableDayFn(day));
 
+                // Backwards compatability for events arrays
+                if (opts.events instanceof Array) {
+                    for (var p in opts.events) {
+                        if (new Date(opts.events[p]).toDateString() === dayStr) {
+                            eventClass = 'has-event';
+                            break;
+                        }
+                    }
+                } else {
+                    var keys = Object.keys(opts.events);
+
+                    for (var p in keys) {
+                        if (new Date(keys[p]).toDateString() === dayStr) {
+                            eventClass = 'has-event ' + opts.events[keys[p]];
+                            break;
+                        }
+                    }
+                }
+                                 
                 if (isEmpty) {
                     if (i < before) {
                         dayNumber = daysInPreviousMonth + dayNumber;
@@ -1113,7 +1133,7 @@
                         day: dayNumber,
                         month: monthNumber,
                         year: yearNumber,
-                        hasEvent: hasEvent,
+                        eventClass: eventClass,
                         isSelected: isSelected,
                         isToday: isToday,
                         isDisabled: isDisabled,
